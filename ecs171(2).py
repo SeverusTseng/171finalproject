@@ -46,8 +46,8 @@ def ConvertData():
         p2_decode.append(a)
     #print(len(p_decode[0]))
 
-    train=np.zeros((770, 50000),dtype=np.float64) #features
-    test=np.zeros((769, 50000),dtype=np.float64)
+    train=np.zeros((770, 50000),dtype=np.float32) #features
+    test=np.zeros((769, 50000),dtype=np.float32)
     feature=[] #features' name
     idnumber=[] #id numbers
     for j in range(50001): #(0-50000)
