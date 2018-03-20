@@ -242,8 +242,8 @@ if __name__ == '__main__':
     train_fs[inds] = np.take(col_mean, inds[1])
     train_fs[np.isinf(train_fs)] = 0
 
-    train_x = train_fs[:,range(1, 770)]
-    train_y= train_fs[:,-1]
+    train_x = train_fs[:,range(1, 778)]
+    train_y= train_fs[:,779]
 
     test_fs = np.genfromtxt(open(dir + '/test_v2.csv','rb'), delimiter=',', skip_header = 1)
     col_mean = stats.nanmean(test_fs, axis=0)
