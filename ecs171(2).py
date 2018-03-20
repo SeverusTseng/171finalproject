@@ -90,8 +90,8 @@ def getTopFeatures(train_x, train_y, n_features=100):
             p_val[i] = 0.0
         p_val_dict[i] = p_val[i]
     
-    sorted_f = sorted(f_val_dict.items(), key=operator.itemgetter(1),reverse=True)
-    sorted_p = sorted(p_val_dict.items(), key=operator.itemgetter(1),reverse=True)
+    sorted_f = sorted(f_val_dict.items(), key=operator.itemgetter(1), reverse=True)
+    sorted_p = sorted(p_val_dict.items(), key=operator.itemgetter(1), reverse=True)
     
     feature_indexs = []
     for i in range(0,n_features):
@@ -253,6 +253,7 @@ if __name__ == '__main__':
     dist_sub_list = [[corr[0], corr[1]] for corr in temp_list]
     feature_pair_sub_list = [[520, 521], [271, 521], [271, 520]]
     feature_pair_sub_list.extend(dist_sub_list[1:])
+    print (feature_pair_sub_list)
     
 #feature_pair_plus_list
     feature_size = len(train_x[0])
@@ -273,6 +274,7 @@ if __name__ == '__main__':
     temp_list = get_distinct_feature_pairs(sorted_plus_list)
     dist_plus_list = [[corr[0], corr[1]] for corr in temp_list]
     feature_pair_plus_list = dist_plus_list
+    print (feature_pair_plus_list)
 
 #feature_pair_mul_list
     feature_size = len(train_x[0])
@@ -293,6 +295,7 @@ if __name__ == '__main__':
     temp_list = get_distinct_feature_pairs(sorted_mul_list)
     dist_mul_list = [[corr[0], corr[1]] for corr in temp_list]
     feature_pair_mul_list = dist_mul_list
+    print (feature_pair_mul_list)
 
 #feature_pair_divide_list
     feature_size = len(train_x[0])
@@ -317,11 +320,13 @@ if __name__ == '__main__':
     temp_list = get_distinct_feature_pairs(sorted_divide_list)
     dist_divide_list = [[corr[0],corr[1]] for corr in temp_list]
     feature_pair_divide_list = dist_divide_list
+    print (feature_pair_divide_list)
 
 # get top features
     feature_indexs = getTopFeatures(train_x, train_y, n_features=100)
 # get whole data with feature pairs
     train_whole_data = get_data(train_x, feature_indexs, feature_pair_sub_list, feature_pair_plus_list, feature_pair_mul_list, feature_pair_divide_list)
+    print (train_whole_data)
 # gbm classifier
     gbc = gbc_classify(train_x, train_y, feature_indexs, feature_pair_sub_list, feature_pair_plus_list, feature_pair_mul_list, feature_pair_divide_list)
 # use svm to predict the loss   
