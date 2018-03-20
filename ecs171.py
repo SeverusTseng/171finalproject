@@ -16,7 +16,7 @@ from sklearn.svm import SVR
 from sklearn.ensemble import GradientBoostingRegressor, GradientBoostingClassifier
 from sklearn.ensemble import  RandomForestRegressor, RandomForestClassifier
 from sklearn.ensemble import ExtraTreesRegressor
-from sklearn.decomposition import ProbabilisticPCA, KernelPCA
+#from sklearn.decomposition import ProbabilisticPCA, KernelPCA
 from sklearn.decomposition import NMF
 from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC
@@ -44,7 +44,7 @@ def get_feature_pair_sub_list(train_x, train_y, eps=0.01):
     sub_feature_corr_list = []
     for i in range(feature_size):
         if i % 50 == 0:
-            print i
+            print (i)
         for j in range(feature_size):
             if i < j:
                 corr = stats.pearsonr(train_x[:,i] - train_x[:,j], train_y)
@@ -53,7 +53,7 @@ def get_feature_pair_sub_list(train_x, train_y, eps=0.01):
                 feature_corr = (i, j, abs(corr[0]))
                 sub_feature_corr_list.append(feature_corr)
     
-    //sub_list = find_corr_pairs_sub(train_x, train_y, eps)
+    #sub_list = find_corr_pairs_sub(train_x, train_y, eps)
     sub_list = [corr for corr in sub_feature_corr_list if abs(corr[2])>eps]
     sorted_sub_list = sorted(sub_list, key=lambda corr:abs(corr[2]), reverse=True)
   
@@ -68,7 +68,7 @@ def get_feature_pair_plus_list(train_x, train_y, eps=0.01):
     plus_feature_corr_list = []
     for i in range(feature_size):
         if i % 50 == 0:
-            print i
+            print (i)
         for j in range(feature_size):
             if i < j:
                 corr = stats.pearsonr(train_x[:,i] + train_x[:,j], train_y)
@@ -77,7 +77,7 @@ def get_feature_pair_plus_list(train_x, train_y, eps=0.01):
                 feature_corr = (i, j, corr[0])
                 plus_feature_corr_list.append(feature_corr)
 
-    //plus_list = find_corr_pairs_plus(train_x, train_y, eps)
+    #plus_list = find_corr_pairs_plus(train_x, train_y, eps)
     plus_list = [corr for corr in plus_feature_corr_list if abs(corr[2])>eps]
     sorted_plus_list = sorted(plus_list, key=lambda corr:abs(corr[2]), reverse=True)
 
@@ -91,7 +91,7 @@ def get_feature_pair_mul_list(train_x, train_y, eps=0.01):
     mul_feature_corr_list = []
     for i in range(feature_size):
         if i % 50 == 0:
-            print i
+            print (i)
         for j in range(feature_size):
             if i < j:
                 corr = stats.pearsonr(train_x[:,i] * train_x[:,j], train_y)
@@ -100,7 +100,7 @@ def get_feature_pair_mul_list(train_x, train_y, eps=0.01):
                 feature_corr = (i, j, abs(corr[0]))
                 mul_feature_corr_list.append(feature_corr)
 
-    //mul_list = find_corr_pairs_mul(train_x, train_y, eps)
+    #mul_list = find_corr_pairs_mul(train_x, train_y, eps)
     mul_list = [corr for corr in mul_feature_corr_list if abs(corr[2])>eps]
     sorted_mul_list = sorted(mul_list, key=lambda corr:abs(corr[2]), reverse=True)
 
@@ -114,7 +114,7 @@ def get_feature_pair_divide_list(train_x, train_y, eps=0.01):
     divide_feature_corr_list = []
     for i in range(feature_size):
         if i % 50 == 0:
-            print i
+            print (i)
         for j in range(feature_size):
             if i != j:
                 try:
@@ -127,7 +127,7 @@ def get_feature_pair_divide_list(train_x, train_y, eps=0.01):
                 except ValueError:
                     print ('divide 0')
     
-    //divide_list = find_corr_pairs_divide(train_x, train_y, eps)
+    #divide_list = find_corr_pairs_divide(train_x, train_y, eps)
     divide_list = [corr for corr in divide_feature_corr_list if abs(corr[2])>eps]
     sorted_divide_list = sorted(divide_list, key=lambda corr:abs(corr[2]), reverse=True)
 
@@ -161,25 +161,25 @@ def getTopFeatures(train_x, train_y, n_features=100):
 def get_data(train_x, feature_indexs, feature_pair_sub_list, feature_pair_plus_list, feature_pair_mul_list, feature_pair_divide_list):
     sub_train_x = train_x[:,feature_indexs]
 
-    //feature_pair_sub_list = get_feature_pair_sub_list(train_x, train_y, 0.01)
+    #feature_pair_sub_list = get_feature_pair_sub_list(train_x, train_y, 0.01)
     for i in range(len(feature_pair_sub_list)):
         ind_i = feature_pair_sub_list[i][0]
         ind_j = feature_pair_sub_list[i][1]
         sub_train_x = np.column_stack((sub_train_x, train_x[:,ind_i]-train_x[:,ind_j]))
 
-    //feature_pair_plus_list = get_feature_pair_plus_list(train_x, train_y, 0.01)
+    #feature_pair_plus_list = get_feature_pair_plus_list(train_x, train_y, 0.01)
     for i in range(len(feature_plus_pair_list)):
         ind_i = feature_plus_pair_list[i][0]
         ind_j = feature_plus_pair_list[i][1]
         sub_train_x = np.column_stack((sub_train_x, train_x[:,ind_i] + train_x[:,ind_j]))
 
-    //feature_pair_plus_list = get_feature_pair_mul_list(train_x, train_y, 0.01)
+    #feature_pair_plus_list = get_feature_pair_mul_list(train_x, train_y, 0.01)
     for i in range(len(feature_mul_pair_list)):
         ind_i = feature_mul_pair_list[i][0]
         ind_j = feature_mul_pair_list[i][1]
         sub_train_x = np.column_stack((sub_train_x, train_x[:,ind_i] * train_x[:,ind_j]))
 
-    //feature_pair_plus_list = get_feature_pair_divide_list(train_x, train_y, 0.01)
+    #feature_pair_plus_list = get_feature_pair_divide_list(train_x, train_y, 0.01)
     for i in range(len(feature_divide_pair_list)):
         ind_i = feature_divide_pair_list[i][0]
         ind_j = feature_divide_pair_list[i][1]
@@ -187,7 +187,7 @@ def get_data(train_x, feature_indexs, feature_pair_sub_list, feature_pair_plus_l
         
     return sub_train_x
 
-//predict
+#predict
 def gbc_classify(train_x, train_y):
     sub_x_Train = get_data(train_x, train_y)
     labels = np.zeros(len(train_y))
@@ -235,9 +235,27 @@ def gbc_svr_predict(gbc, train_x, train_y, test_x, feature_pair_sub_list, featur
     return preds_all
 
 if __name__ == '__main__':
-    train_x = np.loadtxt(open("train_x.csv","rb"), delimiter=",", skiprows=0)
-    train_y = np.loadtxt(open("train_y.csv","rb"), delimiter=",", skiprows=0)
-    test_x = np.loadtxt(open("test.csv","rb"), delimiter=",", skiprows=0)
+
+    train_fs = np.genfromtxt(open(dir + 'C:/Users/dell1/Desktop/train.csv','rb'), delimiter=',', skip_header=1)
+    col_mean = stats.nanmean(train_fs, axis=0)
+    inds = np.where(np.isnan(train_fs))
+    train_fs[inds] = np.take(col_mean, inds[1])
+    train_fs[np.isinf(train_fs)] = 0
+
+    train_x = train_fs[:,range(1, 770)]
+    train_y= train_fs[:,-1]
+
+    test_fs = np.genfromtxt(open(dir + '/test_v2.csv','rb'), delimiter=',', skip_header = 1)
+    col_mean = stats.nanmean(test_fs, axis=0)
+    inds = np.where(np.isnan(test_fs))
+    test_fs[inds] = np.take(col_mean, inds[1])
+    test_fs[np.isinf(test_fs)] = 0
+
+    x_Test = test_fs[:,range(1, 770)]
+
+    #train_x = np.loadtxt(open("train_x.csv","rb"), delimiter=",", skiprows=0)
+    #train_y = np.loadtxt(open("train_y.csv","rb"), delimiter=",", skiprows=0)
+    #test_x = np.loadtxt(open("test.csv","rb"), delimiter=",", skiprows=0)
 
     feature_pair_sub_list = get_feature_pair_sub_list(train_x, train_y, 0.01)
     feature_pair_plus_list = get_feature_pair_plus_list(train_x, train_y, 0.01)
@@ -248,4 +266,3 @@ if __name__ == '__main__':
     svr_preds = gbc_svr_predict(gbc, train_x, train_y, test_x, feature_pair_sub_list, feature_pair_plus_list, feature_pair_mul_list, feature_pair_divide_list)
 
     output_preds(svr_preds)
-    
