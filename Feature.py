@@ -24,14 +24,14 @@ def ConvertData():
         a=line.decode('UTF-8').split(',')
         p2_decode.append(a)
     #print(len(p_decode[0]))
-    train_y=np.zeros((50000,1),dtype=np.float64)#loss
-    train_x=np.zeros((769, 50000),dtype=np.float64)#features
-    test=np.zeros((769, 50000),dtype=np.float64)
+    train_y=np.zeros((50000,1),dtype=np.float32)#loss
+    train_x=np.zeros((769, 50000),dtype=np.float32)#features
+    test=np.zeros((769, 55471),dtype=np.float32)
     feature=[]#features' name
     idnumber=[]#id numbers
     for i in range(770):
     #    temp=[]
-        for j in range(50001):
+        for j in range(len(p1_decode)):
             idnumber.append(p1_decode[j][0])
             if j==0:
                 feature.append(p1_decode[j][i+1])
@@ -39,11 +39,16 @@ def ConvertData():
                 train_y[j-1][0]=float(p1_decode[j][i+1])
             elif p1_decode[j][i+1]=='NA':
                 train_x[i][j-1]=np.nan
-            elif p2_decode[j][i+1]=='NA':
-                test[i][j-1]=np.nan
             else:
                 train_x[i][j-1]=float(p1_decode[j][i+1])
-                test[i][j-1]=float(p1_decode[j][i+1])
+    for i in range(769):
+    #    temp=[]
+        for j in range(len(p2_decode)):
+            idnumber.append(p2_decode[j][0])
+            if p2_decode[j][i+1]=='NA':
+                test[i][j]=np.nan
+            else:
+                test[i][j]=float(p2_decode[j][i+1])
     print(train_x.shape, train_y.shape, test.shape)
     np.savetxt("train_x.csv", train_x, delimiter=',')  
     np.savetxt("train_y.csv", train_y, delimiter=',')
@@ -52,9 +57,11 @@ def ConvertData():
 Load converted .csv data
 """
 def LoadData():
+    print('loading data')
     train_x = np.loadtxt(open("train_x.csv","rb"), delimiter=",", skiprows=0)
     train_y = np.loadtxt(open("train_y.csv","rb"), delimiter=",", skiprows=0)
     test = np.loadtxt(open("test.csv","rb"), delimiter=",", skiprows=0)
+    print(train_x.shape, train_y.shape, test.shape)
     return train_x, train_y, test
 """
 Compute NA percentage
@@ -70,6 +77,7 @@ def NAPercent(train_x):
 Delete row(in both train and test data) with NA>=5% and replace all other NAs with mean value of that feature
 """
 def deleteNA(train_x, test, NApercent):
+    print('deleting NA...')
     features=[i for i in range(769)]
     delete_list=[]
     for i in range(769):
@@ -100,12 +108,13 @@ def deleteNA(train_x, test, NApercent):
 Delete duplicate data(if two features have more than 50% same elements, we regard it as duplicate)
 """
 def DeleteDuplicate(train_x, test):
+    print('deleting duplicate...')
     CurrentFeatureNum=train_x.shape[0]
     delete_list=[]
     for i in range(CurrentFeatureNum):
         for j in range(i+1, CurrentFeatureNum):
             temp=train_x[i]-train_x[j]
-            if np.count_nonzero(temp) <=20000:#nonzero elements<=20000: i,j duplicate
+            if np.count_nonzero(temp) <=20000 and i not in delete_list:#nonzero elements<=20000: i,j duplicate
                 delete_list.append(j)
     delete_tuple=tuple(delete_list)
     train_x=np.delete(train_x, delete_tuple, axis=0)
@@ -119,6 +128,7 @@ def DeleteDuplicate(train_x, test):
 Find feature pairs with correlation>0.996 and keep their difference as new features
 """
 def GoldenFeature(train_x, test):
+    print('golden feature...')
     CurrentFeatureNum=train_x.shape[0]
     GoldenFeatureList=[]
     FinalTestList=[]
@@ -142,6 +152,7 @@ Remove all feature pairs with correlation>0.99
 """
 #GoldenFeature = np.loadtxt(open("GoldenFeature.csv","rb"), delimiter=",", skiprows=0)
 def FinalFeature(train_x, test):
+    print('final feature...')
     CurrentFeatureNum=train_x.shape[0]
     remove_list=[]
     for i in range(CurrentFeatureNum):
@@ -157,6 +168,8 @@ def FinalFeature(train_x, test):
 #    np.savetxt("FinalTestT.csv", FinalTest.transpose(), delimiter=',') 
 #    np.savetxt("FinalFeature.csv", FinalFeature, delimiter=',') 
 #    np.savetxt("FinalFeatureT.csv", FinalFeature.transpose(), delimiter=',')
+    print(train_x.shape)
+    print(test.shape)
     return train_x, test
 
 """
@@ -177,6 +190,8 @@ def main():
 if __name__=='__main__':
     main()
         
+        
+
         
         
         
