@@ -40,19 +40,7 @@ label_index = 770
 eps=0.01
 
 
-def output_preds(preds):
-    out_file = dir + '/output.csv'
-    fs = open(out_file,'w')
-    fs.write('id,loss\n')
-    for i in range(len(preds)):
-        if preds[i] > 100:
-            preds[i] = 100
-        elif preds[i] < 0:
-            preds[i] = 0
-        strs = str(i+105472) + ',' + str(np.float(preds[i]))
-        fs.write(strs + '\n');
-    fs.close()
-    return
+
 
 # load train data
 def load_train_fs():
@@ -84,6 +72,19 @@ def toLabels(train_y):
     return labels
 
 # generate the output file based to the predictions
+def output_preds(preds):
+    out_file = dir + '/output.csv'
+    fs = open(out_file,'w')
+    fs.write('id,loss\n')
+    for i in range(len(preds)):
+        if preds[i] > 100:
+            preds[i] = 100
+        elif preds[i] < 0:
+            preds[i] = 0
+        strs = str(i+105472) + ',' + str(np.float(preds[i]))
+        fs.write(strs + '\n');
+    fs.close()
+    return
 
 # use gbm classifier to predict whether the loan defaults or not
 def gbc_classify(train_x, train_y):
