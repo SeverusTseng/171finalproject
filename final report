@@ -27,13 +27,13 @@
 %\title{Project Report}
 %
 %%% Preamble
-\documentclass[paper=a4, fontsize=11pt]{scrartcl}
+\documentclass[paper=a4, fontsize=11pt, reqno]{scrartcl}
 \usepackage[T1]{fontenc}
 \usepackage{fourier}
-
+\usepackage{times}
 \usepackage[english]{babel}															% English language/hyphenation
 \usepackage[protrusion=true,expansion=true]{microtype}	
-\usepackage{amsmath,amsfonts,amsthm} % Math packages
+\usepackage{amsmath,amsfonts,amsthm,color} % Math packages
 \usepackage[pdftex]{graphicx}	
 \usepackage{url}
 
@@ -41,7 +41,11 @@
 %%% Custom sectioning
 \usepackage{sectsty}
 \allsectionsfont{\centering \normalfont\scshape}
-
+\usepackage[
+backend=biber,
+style=alphabetic,
+sorting=ynt
+]{biblatex}
 
 %%% Custom headers/footers (fancyhdr package)
 \usepackage{fancyhdr}
@@ -63,6 +67,7 @@
 
 %%% Maketitle metadata
 \newcommand{\horrule}[1]{\rule{\linewidth}{#1}} 	% Horizontal rule
+\newcommand{\red}[1]{\textcolor{red}{#1}}
 
 \title{
 		%\vspace{-1in} 	
@@ -71,49 +76,52 @@
         ECS 171 Machine Learning Final Project} \\ [25pt]
 		\horrule{0.5pt} \\[0.4cm]
 		\huge Loan Default Prediction \\
-		\horrule{2pt} \\[0.5cm]
+		\horrule{2pt} \\[2in]
 }
 \author{
-		\normalfont 								\normalsize
-        Zongjian Fan,
-        Huian Wang,
-        Ruolan Zeng and Bohan Zhou
-        \\[-3pt]		\normalsize
-        \today
-}
-\date{}
+		\normalfont 								%\normalsize
+        Zongjian Fan\quad 915239513\\
+        Huian Wang\quad \\
+        Ruolan Zeng\quad 915536177\\
+        Bohan Zhou\quad 998383636\\[2in]
+		}
+\date{\today}
+\addbibresource{ECS171.bib}
 
 
 %%% Begin document
 \begin{document}
 \maketitle
-\section{Team Information}
+\newpage
+%\section{Team Information}
 
-\begin{table}[!htbp]
-\centering
-\begin{tabular}{|c|c|}
-\hline
-\multicolumn{2}{|c|}{Team Name}\\
-\hline
-Name&Kerbos Id\\
-\hline
-Zongjian Fan& 915239513\\
-\hline
-Huian Wang& 000\\
-\hline
-Ruolan Zeng& 915536177\\
-\hline
-Legal High& 000\\
-\hline
-\end{tabular}
-\end{table} 
+% \begin{table}[!htbp]
+% \centering
+% \begin{tabular}{|c|c|}
+% \hline
+% \multicolumn{2}{|c|}{Team Name}\\
+% \hline
+% Name&Kerbos Id\\
+% \hline
+% Zongjian Fan& 915239513\\
+% \hline
+% Huian Wang& 000\\
+% \hline
+% Ruolan Zeng& 915536177\\
+% \hline
+% Legal High& 000\\
+% \hline
+% \end{tabular}
+% \end{table} 
 
 \section{Problem Formulation}
-
+We are given a training data with 50,000 observations. For each observation, it was recorded by 778 features and a loss. However f11, f12, f462, f463, f473, f474, f602, f603, f605 are abandoned, thus totally 769 valid features. In case of a default, the loss was measured among 0 and 100. We are required to think of a way to predict the loss for testing data with 55,470 observations.
+\red{Note that some variables may be categorical (e.g. f776 and f777).}
 \section{Data Analysis}
 \subsection{Missing data}
-
-\begin{table}[!htbp]
+We first collect features with more than 5\% of missing observations and delete those features in both traning and testing data.
+\begin{table}[htbp]
+\begin{minipage}[b]{0.45\linewidth}
 \centering
 \begin{tabular}{|c|c|}
 \hline
@@ -140,8 +148,15 @@ Feature&Percentage(\%)\\
 328& 17.2\\
 \hline
 \end{tabular}
-\caption{The first column is the number of features, the second column is the percentage of missing data of this feature}
-\end{table} 
+\caption{The first column is the index of features, the second column is the percentage of missing data.}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.4\linewidth}
+\centering
+\includegraphics[height=60mm]{NANstat.png}
+\captionof{figure}{The yellow bar are features with less than 2500 missing data, the blue bar are features with greater than 2500 missing data.}
+\label{fig:image}
+\end{minipage}
+\end{table}
 \subsection{Correlation matrix (heatmap)}
 \subsection{Loss correlation matrix (zoomed heatmap)}
 \subsection{Scatter plots between Loss and correlated features}
@@ -152,4 +167,6 @@ Feature&Percentage(\%)\\
 
 
 %%% End document
+\nocite{*}
+\printbibliography
 \end{document}
