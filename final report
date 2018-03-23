@@ -162,10 +162,13 @@ Feature&Percentage(\%)\\
 After dealing with those missing data and deleting those features with more than 5% missing data, we still have 726 features.
 We don't need to keep all the features since many of them are highly related or even duplicated, which could lead to overfitting. Thereore, some strategies needed to select the features.\par
 First of all, we removed all duplicated features. To complete that, if two features have more than 30000 corresponding same values, we regarded this pair as duplicated, and only kept one of them.\par
-Then, we searched for all pairs of highly correlated features and kept there difference as a feature, which consisted a new feature set. In this step, we first chose a threshold 0.996, but after that only around 100 features were kept after all the selection processes, which was too less in our opinion. 
-And thus we lowered the threshold to 0.993, and this time there were around 200 features in the last, and the predicting result was indeed improved by this, which suggested that only 100 features could lead to kind of underfitting.\par
-Finally, we searched for all pairs of highly correlated features in the new feature set again, and removed all highly correlated features (correlation coefficient > 0:99). After this cleaning step, we obtained our final feature set for further analysis and training.
-
+Then, we searched for all pairs of highly correlated features and kept there difference as a feature, which consisted a new feature set.\par
+Finally, we searched for all pairs of highly correlated features in the new feature set again, and removed all highly correlated features (correlation coefficient > 0:99). After this cleaning step, we obtained our final feature set for further analysis and training.\par
+In our first several tries, we chose a threshold 0.996 for generating new feature set, but after that only around 100 features were kept after all the selection processes, which was too less in our opinion. 
+And thus we lowered the threshold to 0.993, and this time there were around 200 features in the last, and the predicting result was indeed improved by this, which suggested that only 100 features could lead to kind of underfitting.
+But there were no big progress when we used those 200 features to training no matter how we changed the training models or parameters. 
+Therefore we concluded that 200 feautures were still not enough, a more powerful method to generating new features was necessary.
+\par
 \subsection{Correlation matrix (heatmap)}
 \subsection{Loss correlation matrix (zoomed heatmap)}
 \subsection{Scatter plots between Loss and correlated features}
