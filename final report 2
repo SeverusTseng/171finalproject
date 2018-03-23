@@ -1,0 +1,231 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% LaTeX Example: Project Report
+%
+% Source: http://www.howtotex.com
+%
+% Feel free to distribute this example, but please keep the referral
+% to howtotex.com
+% Date: March 2011 
+% 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% How to use writeLaTeX: 
+%
+% You edit the source code here on the left, and the preview on the
+% right shows you the result within a few seconds.
+%
+% Bookmark this page and share the URL with your co-authors. They can
+% edit at the same time!
+%
+% You can upload figures, bibliographies, custom classes and
+% styles using the files menu.
+%
+% If you're new to LaTeX, the wikibook is a great place to start:
+% http://en.wikibooks.org/wiki/LaTeX
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Edit the title below to update the display in My Documents
+%\title{Project Report}
+%
+%%% Preamble
+\documentclass[paper=a4, fontsize=11pt, reqno]{scrartcl}
+\usepackage[T1]{fontenc}
+\usepackage{fourier}
+\usepackage{times}
+\usepackage[english]{babel}															% English language/hyphenation
+\usepackage[protrusion=true,expansion=true]{microtype}	
+\usepackage{amsmath,amsfonts,amsthm,color} % Math packages
+\usepackage[pdftex]{graphicx}	
+\usepackage{url}
+
+
+%%% Custom sectioning
+\usepackage{sectsty}
+\allsectionsfont{\centering \normalfont\scshape}
+\usepackage[
+backend=biber,
+style=alphabetic,
+sorting=ynt
+]{biblatex}
+
+%%% Custom headers/footers (fancyhdr package)
+\usepackage{fancyhdr}
+\pagestyle{fancyplain}
+\fancyhead{}											% No page header
+\fancyfoot[L]{}											% Empty 
+\fancyfoot[C]{}											% Empty
+\fancyfoot[R]{\thepage}									% Pagenumbering
+\renewcommand{\headrulewidth}{0pt}			% Remove header underlines
+\renewcommand{\footrulewidth}{0pt}				% Remove footer underlines
+\setlength{\headheight}{13.6pt}
+
+
+%%% Equation and float numbering
+\numberwithin{equation}{section}		% Equationnumbering: section.eq#
+\numberwithin{figure}{section}			% Figurenumbering: section.fig#
+\numberwithin{table}{section}				% Tablenumbering: section.tab#
+
+
+%%% Maketitle metadata
+\newcommand{\horrule}[1]{\rule{\linewidth}{#1}} 	% Horizontal rule
+\newcommand{\red}[1]{\textcolor{red}{#1}}
+
+\title{
+		%\vspace{-1in} 	
+		\usefont{OT1}{bch}{b}{n}
+		\normalfont \normalsize \textsc{University of California, Davis\\
+        ECS 171 Machine Learning Final Project} \\ [25pt]
+		\horrule{0.5pt} \\[0.4cm]
+		\huge Loan Default Prediction \\
+		\horrule{2pt} \\[2in]
+}
+\author{
+		\normalfont 								%\normalsize
+        Zongjian Fan\quad 915239513\\
+        Huian Wang\quad \\
+        Ruolan Zeng\quad 915536177\\
+        Bohan Zhou\quad 998383636\\[2in]
+		}
+\date{\today}
+\addbibresource{ECS171.bib}
+
+
+%%% Begin document
+\begin{document}
+\maketitle
+\newpage
+%\section{Team Information}
+
+% \begin{table}[!htbp]
+% \centering
+% \begin{tabular}{|c|c|}
+% \hline
+% \multicolumn{2}{|c|}{Team Name}\\
+% \hline
+% Name&Kerbos Id\\
+% \hline
+% Zongjian Fan& 915239513\\
+% \hline
+% Huian Wang& 000\\
+% \hline
+% Ruolan Zeng& 915536177\\
+% \hline
+% Legal High& 000\\
+% \hline
+% \end{tabular}
+% \end{table} 
+
+\section{Problem Description}
+We are given a training data with 50,000 observations. For each observation, it was recorded by 778 features and a loss. However f11, f12, f462, f463, f473, f474, f602, f603, f605 are abandoned, thus totally 769 valid features. In case of a default, the loss was measured among 0 and 100. We are required to think of a way to predict the loss for testing data with 55,470 observations.
+\red{Note that some variables may be categorical (e.g. f776 and f777).}
+\section{Data Analysis}
+The first and important step is analyzing the data we are provided. We get a dataset of 50,000 rows, and every row shows the unnamed 769 features and the default loss of one client. If there is no default then the loss would be 0, otherwise it would be a positive number. To have a quick overview of how often defaults happen, we computer the percentage of clients that have nonzero default and it is 10\%. This means only 10\% data is useful for predicting the loss, so we extract these data with default and name the data set $NonZeroLoss$.
+
+Our strategy is first training a classification model using the whole data for classifying default or non-default, then training a regression model using $NonZeroLoss$ to predict the loss for clients with defaults. Our expectation is for a given test data: our program will first classify clients into two groups, group A for clients without defaults and group B for those with defaults; then set the predictions for loss of everyone in group A to 0; finally use the regression model to predict the loss of everyone in group B.
+\subsection{Missing data}
+Since every feature is unnamed, it is impossible for us to figure out which one is more important by subjective analysis. To do an objective analysis, we want to compute the correlation matrix. However, there is a great deal of missing data(NAN) in our dataset, we have to deal with them first. We compete the percentage of missing data for every feature and Table 2.1 is a table showing a part of them. We do this because we want to know how prevalent is the missing data and whether the missing data has a pattern or is just random.
+
+We consider that when more than 5\% of the data of a feature is missing, we should delete that feature and pretend it never exists. This means we will not try any trick to fill the missing data in these features, because in this case filling the missing data may bring in noise. Besides, we notice that features with missing data showing up like twins. We think features having the same number of missing data probably means the missing data refers the the same set of observations.
+
+We consider that when less than 5\% of the data of a feature is missing, we should fill the missing data using mathematical mean of the all data of that feature. Again, because all features are unnamed, we are not able to fill the missing data by fitting a curve.
+
+After dealing with those missing data and deleting those features with more than 5\% missing data, we still have 726 features.
+We don't need to keep all the features since many of them are highly related or even duplicated, which could lead to over-fitting. Therefore, some strategies needed to select the features.
+
+\begin{table}[htbp]
+\begin{minipage}[b]{0.45\linewidth}
+\centering
+\begin{tabular}{|c|c|}
+\hline
+Feature&Percentage(\%)\\
+\hline
+652& 17.9\\
+\hline
+653& 17.9\\
+\hline
+156& 17.7\\
+\hline
+157& 17.7\\
+\hline
+166& 17.5\\
+\hline
+167& 17.5\\
+\hline
+608& 17.4\\
+\hline
+609& 17.4\\
+\hline
+327& 17.2\\
+\hline
+328& 17.2\\
+\hline
+\end{tabular}
+\caption{The first column is the index of features, the second column is the percentage of missing data. The percentages are ranked from large to small, and this chart only shows the first eight features with the biggest percentages}
+\end{minipage}\hfill
+\begin{minipage}[b]{0.4\linewidth}
+\centering
+\includegraphics[height=60mm]{NANstat.png}
+\captionof{figure}{The yellow bar are features with less than 2500 missing data, the blue bar are features with greater than 2500 missing data.}
+\label{fig:image}
+\end{minipage}
+\end{table}
+
+\subsection{Correlation matrix (heatmap)}
+Having fixed the missing data, now we are able to compute the correlation matrix. To gain a quick overview of the relationships between features and loss, below is the correlation matrix in a heat-map.
+
+\subsection{Feature selection}
+First of all, we removed all duplicated features. To complete that, if two features have more than 30000 corresponding same values, we regarded this pair as duplicated, and only kept one of them.
+
+Then, we searched for all pairs of highly correlated features and kept there difference as a feature, which consisted a new feature set.
+
+Finally, we searched for all pairs of highly correlated features in the new feature set again, and removed all highly correlated features (correlation coefficient > 0:99). After this cleaning step, we obtained our final feature set for further analysis and training.
+
+In our first several tries, we chose a threshold 0.996 for generating new feature set, but after that only around 100 features were kept after all the selection processes, which was too less in our opinion. 
+
+And thus we lowered the threshold to 0.993, and this time there were around 200 features in the last, and the predicting result was indeed improved by this, which suggested that only 100 features could lead to kind of under-fitting.
+But there were no big progress when we used those 200 features to training no matter how we changed the training models or parameters. 
+
+Therefore we concluded that 200 features were still not enough, a more powerful method to generating new features was necessary.
+
+\subsection{A Naive Training Model}
+We use the trained classification model to classify the test data into two groups, group A for clients without defaults and group B for those with defaults. We extract all data belong to group B and name this data set $TestWithLoss$. First we use the Regression Learner APP in MATLAB.
+We put the data set $NonZeroLoss$ into the regression model “fine free”. Fine tree is {wikipedia}. Below is the MATLAB window showing how it’s trained and its results.
+
+Then we put the data set $TestWithLoss$ into the trained model and get its predictions. This is our first try and the score is 0.7??
+\section{Other Training Models}
+\subsection{Classification}
+At first we tried to predict where a loan is default or not, which is a classification problem. Therefore the new target to predict is given by:
+$$ \textit{target}=\left\{
+\begin{array}{rcl}
+1       &      & \textit{loss} > 0\\
+0     &      & \textit{loss} = 0
+\end{array} \right. $$
+For this task we used the complete feature set generated by our feature selection strategies. 
+The classification itself and validation was done by GradientBoostingClassifier in \textit{sklearn} package. 
+And the parameters were set as following: $\textit{n\_estimators}= 3000$, $\textit{max\_depth} = 9$.\\
+It is always not the best choice to choose the probability 0.5 as the cutoff of being predicted as the default loan.
+After trying with different numbers and referring to some previous work, we choose the probability 0.55 to be the cutoff. 
+Namely, when the default probability is less than 0.55, the loan is regarded as no default.
+Otherwise, the loan is treated as the default loan, and would be processed by the regression phase.
+
+\subsection{Regression}
+After predicting whether the loans are default or not in testing data using Gradient Boosting Classifier mentioned above, we tried to predict the loss of all default loan by regression.
+Owing to the long tail distribution of the loss, it is a proper way to use $log(loss)$.
+The feature set for the loss prediction consisted of all features from our selection process. \\
+The loss prediction and validation was done by the weighted combination of Gradient Boosting regression (GBR) and Support Vector regression (SVR) from \textit{sklearn} package, with weight equals to 0.6 and 0.4, separately.
+The settings were as following: $\textit{n\_estimators} = 1300,\  \textit{max\_depth} = 4,\  \textit{subsample} = 0.5,\  \textit{learning\_rate} = 0.05$ for GBR regression;
+and $ \textit{C} = 16,\  \textit{kernel} = 'rbf',\  \textit{gamma} = 0.000122$ for SVR regression. 
+And we used $\textit{loss} = 0$ for all other cases.
+
+\section{Code Description}
+All our code is written by python, and consists of two files: \textbf{FeatureSelction.py} and \textbf{Predict.py}.\\
+\textbf{FeatureSelction.py} contains all the functions for converting data, selecting features and generating data files for training.
+And \textbf{Predict.py} uses all the data files generated by \textbf{FeatureSelction.py} to train and predict the results.\\
+To generate the solution:\par
+1. Run \textbf{FeatureSelction.py}.\par
+2. Run \textbf{Predict.py} in the same directory.\par
+3. Copy the predicted loss data to the sample submission files.\par
+
+%%% End document
+\nocite{*}
+\printbibliography
+\end{document}
