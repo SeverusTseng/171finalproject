@@ -177,14 +177,19 @@ First of all, we removed all duplicated features. To complete that, if two featu
 
 Then, we searched for all pairs of highly correlated features and kept there difference as a feature, which consisted a new feature set.
 
-Finally, we searched for all pairs of highly correlated features in the new feature set again, and removed all highly correlated features (correlation coefficient > 0:99). After this cleaning step, we obtained our final feature set for further analysis and training.
+Finally, we searched for all pairs of highly correlated features in the new feature set again, and removed all highly correlated features (correlation coefficient > 0.99). After this cleaning step, we obtained our final feature set for further analysis and training.
 
-In our first several tries, we chose a threshold 0.996 for generating new feature set, but after that only around 100 features were kept after all the selection processes, which was too less in our opinion. 
+In our first several tries, we chose a threshold 0.996 for generating new feature set, but after that only around 100 features were kept after all the selection processes, which was too less in our opinion (and got around 0.59 on Kaggle). 
 
-And thus we lowered the threshold to 0.993, and this time there were around 200 features in the last, and the predicting result was indeed improved by this, which suggested that only 100 features could lead to kind of under-fitting.
-But there were no big progress when we used those 200 features to training no matter how we changed the training models or parameters. 
+And thus we lowered the threshold to 0.993, and this time there were around 200 features in the last, and the predicting result was indeed improved by this (got around 0.57), which suggested that only 100 features could lead to kind of under-fitting.
+But there were no big progress when we used those 200 features to training no matter how we changed the training models or parameters. \\
 
-Therefore we concluded that 200 features were still not enough, a more powerful method to generating new features was necessary.
+Therefore we concluded that 200 features were still not enough, a more powerful method to generating new features was necessary. 
+Inspired by the previous method which took difference of two highly correlated features as new feature, we used the four basic operators (+, -, \times, \div) between each two features to generate new features. 
+Then we further eliminated the feature combinations pairs that are not distinct based on our former rule (correlation coefficient > 0.99).\\
+Besides, we also considered features highly correlated with loss to be important. We imported \textit{f_regression} from package \textit{Sklearn} to find the correlation coefficient between the feature and the loss, and kept the top 100 features with the largest correlation as our top features. 
+Combined with those new features we generated mentioned above, there are around 450 features in total, which consisted our final feature set used to predict and generate submission file on Kaggle (got 0.50).
+
 
 \subsection{A Naive Training Model}
 We use the trained classification model to classify the test data into two groups, group A for clients without defaults and group B for those with defaults. We extract all data belong to group B and name this data set $TestWithLoss$. First we use the Regression Learner APP in MATLAB.
