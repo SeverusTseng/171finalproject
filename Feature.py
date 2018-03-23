@@ -114,7 +114,7 @@ def deleteNA(train_x, test, NApercent):
 #train_x_1 = np.loadtxt(open("train_x_1.csv","rb"), delimiter=",", skiprows=0)
 
 """
-Delete duplicate data(if two features have more than 50% same elements, we regard it as duplicate)
+Delete duplicate data(if two features have more than 60% same elements, we regard it as duplicate)
 """
 def DeleteDuplicate(train_x, test):
     print('deleting duplicate...')
@@ -134,7 +134,7 @@ def DeleteDuplicate(train_x, test):
 #    np.savetxt("train_x_2.csv", train_x_2, delimiter=',')  
 
 """
-Find feature pairs with correlation>0.996 and keep their difference as new features
+Find feature pairs with correlation>threshold and keep their difference as new features
 """
 def GoldenFeature(train_x, test):
     print('golden feature...')
@@ -158,7 +158,7 @@ def GoldenFeature(train_x, test):
 #    np.savetxt("GoldenFeatureT.csv", GoldenFeature.transpose(), delimiter=',') 
 
 """
-Remove all feature pairs with correlation>0.99
+Remove all feature pairs with correlation > 0.99
 """
 #GoldenFeature = np.loadtxt(open("GoldenFeature.csv","rb"), delimiter=",", skiprows=0)
 def FinalFeature(train_x, test):
@@ -342,7 +342,7 @@ def combine_data(train_x, feature_indexs, feature_pair_sub_list, feature_pair_pl
     return sub_train_x
 
 """
-Generate fianl training and testing feature sets
+Generate final training and testing feature sets
 """
 def FeatureGenerate(train_x, train_y, test_x):
     sub_list=feature_pair_sub_list(train_x, train_y)
