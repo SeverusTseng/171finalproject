@@ -64,7 +64,6 @@ def load_train_fs():
     print(train_x.shape, train_y.shape)
     return train_x, train_y
 
-
 # load test data
 def load_test_fs():
     test_fs = np.genfromtxt(open(dir + '/FinalTest.csv','rb'), delimiter=',')
@@ -80,7 +79,6 @@ def load_test_fs():
     print(test_fs.shape)
     return test_fs
 
-
 # transform the loss to the binary form
 def toLabels(train_y):
     labels = np.zeros(len(train_y))
@@ -90,13 +88,14 @@ def toLabels(train_y):
 # generate the output file based to the predictions
 
 # use gbm classifier to predict whether the loan defaults or not
-def gbc_classify(train_x, train_y):
+def gbm_classify(train_x, train_y):
     labels = toLabels(train_y)
     gbc = GradientBoostingClassifier(n_estimators=3000, max_depth=8)
     gbc.fit(train_x, labels)
     return gbc
 
-def gbc_svr_predict( train_x, train_y, test_x):
+# use svm to predict the loss, based on the result of the gbm classifier
+def svm_predict_func( train_x, train_y, test_x):
     scaler = pp.StandardScaler()
     scaler.fit(train_x)
     train_x = scaler.transform(train_x)
@@ -111,7 +110,7 @@ def gbc_svr_predict( train_x, train_y, test_x):
     return preds_all
 
 # use gbm regression to predict the loss, based on the result of gbm classifier
-def gbc_gbr_predict(train_x, train_y, test_x):  
+def gbm_predict_func(train_x, train_y, test_x):  
     
     scaler = pp.StandardScaler()
     scaler.fit(train_x)
@@ -125,33 +124,30 @@ def gbc_gbr_predict(train_x, train_y, test_x):
     preds_all = np.power(np.e, preds)
     return preds_all
 
-# use gbm classifier to predict whether the loan defaults or not, then invoke the function gbc_gp_predict_part
+# use gbm classifier to predict whether the loan defaults or not, then invoke the gbm_predict and svm_predict function
 def predict(train_x, train_y, test_x):
     labels = toLabels(train_y)
     print('classifying')
-#    pred_probs=np.genfromtxt(open(dir + '/classify.csv','rb'), delimiter=',')
-#    print(pred_probs.shape)
+#   pred_probs=np.genfromtxt(open(dir + '/classify.csv','rb'), delimiter=',')
+#   print(pred_probs.shape)
     labels=Imputer().fit_transform(labels.reshape(-1, 1))
-#    labels=labels.reshape(-1, 1)
     gbc = GradientBoostingClassifier(n_estimators=3000, max_depth=9)
     gbc.fit(train_x, labels)
     pred_probs = gbc.predict_proba(test_x)[:,1]
     output_classify(pred_probs)
     ind_train = np.where(labels>0.55)[0]
     ind_test = np.where(pred_probs>0.55)[0]
-    print('gbr regression...')
-    gbr_predict = gbc_gbr_predict(train_x[ind_train], train_y[ind_train], test_x[ind_test])
-    gbr= np.zeros(len(test_x))
-    gbr[ind_test] = gbr_predict
-    np.savetxt("gbr.csv", gbr, delimiter=',') 
-    print('svr regression...')
-    svr_predict= gbc_svr_predict(train_x[ind_train], train_y[ind_train], test_x[ind_test])
-    svr= np.zeros(len(test_x))
-    svr[ind_test] = svr_predict
-    np.savetxt("svr.csv", svr, delimiter=',') 
-    return 0.6*gbr + 0.4*svr
-
-
+    print('gbm regression...')
+    gbm_predict = gbm_predict_func(train_x[ind_train], train_y[ind_train], test_x[ind_test])
+    gbm= np.zeros(len(test_x))
+    gbm[ind_test] = gbm_predict
+    np.savetxt("gbr.csv", gbm, delimiter=',') 
+    print('svm regression...')
+    svm_predict= svm_predict_func(train_x[ind_train], train_y[ind_train], test_x[ind_test])
+    svm= np.zeros(len(test_x))
+    svm[ind_test] = svm_predict
+    np.savetxt("svr.csv", svm, delimiter=',') 
+    return 0.6*gbm + 0.4*svm
 
 
 # the main function
