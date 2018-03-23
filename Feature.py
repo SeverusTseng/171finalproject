@@ -12,6 +12,7 @@ import math
 import numpy as np
 import operator
 from sklearn.feature_selection import f_regression
+
 """
 Convert original data to .csv(only need to run at the first time)
 """
@@ -57,7 +58,8 @@ def ConvertData():
     print(train_x.transpose().shape, train_y.shape, test.shape)
     np.savetxt("train_x.csv", train_x.transpose(), delimiter=',')  
     np.savetxt("train_y.csv", train_y, delimiter=',')
-    np.savetxt("test.csv", test.transpose(), delimiter=',')  
+    np.savetxt("test.csv", test.transpose(), delimiter=',') 
+    
 """
 Load converted .csv data
 """
@@ -68,6 +70,7 @@ def LoadData():
     test = np.loadtxt(open("test.csv","rb"), delimiter=",", skiprows=0)
     print(train_x.shape, train_y.shape, test.shape)
     return train_x, train_y, test
+
 """
 Compute NA percentage
 """
@@ -78,6 +81,7 @@ def NAPercent(train_x):
         NApercent[i][1]=count/50000
     np.savetxt("NApercent.csv", NApercent, delimiter=',')
     return NApercent
+
 """
 Delete row(in both train and test data) with NA>=5% and replace all other NAs with mean value of that feature
 """
@@ -107,8 +111,8 @@ def deleteNA(train_x, test, NApercent):
     print(test.shape)
     return train_x, test
 #    np.savetxt("train_x_1.csv", train_x_1, delimiter=',')  
-
 #train_x_1 = np.loadtxt(open("train_x_1.csv","rb"), delimiter=",", skiprows=0)
+
 """
 Delete duplicate data(if two features have more than 50% same elements, we regard it as duplicate)
 """
@@ -152,6 +156,7 @@ def GoldenFeature(train_x, test):
     return train_x, test
 #    np.savetxt("GoldenFeature.csv", GoldenFeature, delimiter=',') 
 #    np.savetxt("GoldenFeatureT.csv", GoldenFeature.transpose(), delimiter=',') 
+
 """
 Remove all feature pairs with correlation>0.99
 """
@@ -176,8 +181,9 @@ def FinalFeature(train_x, test):
     print(train_x.shape)
     print(test.shape)
     return train_x, test
+
 """
-Generate all index list for feature generating by combination of features and remove high-correlated pairs
+Get all index lists of combination of features for generating new useful features, and remove high-correlated pairs
 """
 # feature_pair_sub_list
 def feature_pair_sub_list(train_x, train_y):
@@ -202,7 +208,6 @@ def feature_pair_sub_list(train_x, train_y):
     feature_pair_sub_list.extend(dist_sub_list[1:])
     np.savetxt("feature_pair_sub_list.csv", feature_pair_sub_list, delimiter=',')  
     return feature_pair_sub_list
-
 #feature_pair_plus_list
 def feature_pair_plus_list(train_x, train_y):
     feature_size = len(train_x[0])
@@ -272,8 +277,9 @@ def feature_pair_divide_list(train_x, train_y):
     feature_pair_divide_list = dist_divide_list
     np.savetxt("feature_pair_divide_list.csv", feature_pair_divide_list, delimiter=',')  
     return feature_pair_divide_list
+
 """
-Get all indexs of not highly correlated features
+Get not highly correlated feature pairs
 """
 def get_distinct_feature_pairs(sorted_corr_list):
     distinct_list = []
@@ -284,12 +290,34 @@ def get_distinct_feature_pairs(sorted_corr_list):
             dis_ind[sorted_corr_list[i][1]] = 1
             distinct_list.append(sorted_corr_list[i])
     return distinct_list
-"""
-Modify feature set based on index lists
-"""
-def get_data(train_x, feature_indexs, feature_pair_sub_list, feature_pair_plus_list, feature_pair_mul_list, feature_pair_divide_list):
-    sub_train_x = train_x[:,feature_indexs]
 
+"""
+Pick features highly correlated with loss
+"""
+def get_top_features(train_x, train_y, n_features=100):
+    f_val, p_val = f_regression(train_x,train_y)
+    f_val_dict = {}
+    p_val_dict = {}
+    for i in range(len(f_val)):
+        if math.isnan(f_val[i]):
+            f_val[i] = 0.0
+        f_val_dict[i] = f_val[i]
+        if math.isnan(p_val[i]):
+            p_val[i] = 0.0
+        p_val_dict[i] = p_val[i]
+    
+    sorted_f = sorted(f_val_dict.items(), key=operator.itemgetter(1), reverse=True)
+    
+    feature_indexs = []
+    for i in range(0,n_features):
+        feature_indexs.append(sorted_f[i][0])   
+    return feature_indexs
+
+"""
+Append the feature combinations to the selected top features
+"""
+def combine_data(train_x, feature_indexs, feature_pair_sub_list, feature_pair_plus_list, feature_pair_mul_list, feature_pair_divide_list):
+    sub_train_x = train_x[:,feature_indexs]
 
     for i in range(len(feature_pair_sub_list)):
         ind_i = feature_pair_sub_list[i][0]
@@ -312,40 +340,19 @@ def get_data(train_x, feature_indexs, feature_pair_sub_list, feature_pair_plus_l
         sub_train_x = np.column_stack((sub_train_x, train_x[:,ind_i] / train_x[:,ind_j]))
         
     return sub_train_x
+
 """
-Generate new feature sets
+Generate fianl training and testing feature sets
 """
 def FeatureGenerate(train_x, train_y, test_x):
     sub_list=feature_pair_sub_list(train_x, train_y)
-    plus_list=feature_pair_sub_list(train_x, train_y)
-    mul_list=feature_pair_sub_list(train_x, train_y)
-    divide_list=feature_pair_sub_list(train_x, train_y)
-    feature_indexs=getTopFeatures(train_x, train_y, n_features=100)
-    train_x=get_data(train_x, feature_indexs, sub_list, plus_list, mul_list, divide_list)
-    test_x=get_data(test_x, feature_indexs, sub_list, plus_list, mul_list, divide_list)
+    plus_list=feature_pair_plus_list(train_x, train_y)
+    mul_list=feature_pair_mul_list(train_x, train_y)
+    divide_list=feature_pair_divide_list(train_x, train_y)
+    feature_indexs=get_top_features(train_x, train_y, n_features=100)
+    train_x=combine_data(train_x, feature_indexs, sub_list, plus_list, mul_list, divide_list)
+    test_x=combine_data(test_x, feature_indexs, sub_list, plus_list, mul_list, divide_list)
     return train_x, test_x
-
-"""
-Pick features highly correlated with loss
-"""
-def getTopFeatures(train_x, train_y, n_features=100):
-    f_val, p_val = f_regression(train_x,train_y)
-    f_val_dict = {}
-    p_val_dict = {}
-    for i in range(len(f_val)):
-        if math.isnan(f_val[i]):
-            f_val[i] = 0.0
-        f_val_dict[i] = f_val[i]
-        if math.isnan(p_val[i]):
-            p_val[i] = 0.0
-        p_val_dict[i] = p_val[i]
-    
-    sorted_f = sorted(f_val_dict.items(), key=operator.itemgetter(1), reverse=True)
-    
-    feature_indexs = []
-    for i in range(0,n_features):
-        feature_indexs.append(sorted_f[i][0])   
-    return feature_indexs
 
 
 def main():
