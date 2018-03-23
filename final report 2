@@ -80,6 +80,7 @@ sorting=ynt
 }
 \author{
 		\normalfont 								%\normalsize
+        Team Name: FanWangZhouZeng\\
         Zongjian Fan\quad 915239513\\
         Huian Wang\quad \\
         Ruolan Zeng\quad 915536177\\
@@ -87,40 +88,18 @@ sorting=ynt
 		}
 \date{\today}
 \addbibresource{ECS171.bib}
-
-
-%%% Begin document
 \begin{document}
 \maketitle
-\newpage
-%\section{Team Information}
-
-% \begin{table}[!htbp]
-% \centering
-% \begin{tabular}{|c|c|}
-% \hline
-% \multicolumn{2}{|c|}{Team Name}\\
-% \hline
-% Name&Kerbos Id\\
-% \hline
-% Zongjian Fan& 915239513\\
-% \hline
-% Huian Wang& 000\\
-% \hline
-% Ruolan Zeng& 915536177\\
-% \hline
-% Legal High& 000\\
-% \hline
-% \end{tabular}
-% \end{table} 
 
 \section{Problem Description}
 We are given a training data with 50,000 observations. For each observation, it was recorded by 778 features and a loss. However f11, f12, f462, f463, f473, f474, f602, f603, f605 are abandoned, thus totally 769 valid features. In case of a default, the loss was measured among 0 and 100. We are required to think of a way to predict the loss for testing data with 55,470 observations.
-\red{Note that some variables may be categorical (e.g. f776 and f777).}
-\section{Data Analysis}
-The first and important step is analyzing the data we are provided. We get a dataset of 50,000 rows, and every row shows the unnamed 769 features and the default loss of one client. If there is no default then the loss would be 0, otherwise it would be a positive number. To have a quick overview of how often defaults happen, we computer the percentage of clients that have nonzero default and it is 10\%. This means only 10\% data is useful for predicting the loss, so we extract these data with default and name the data set $NonZeroLoss$.
+Note that some variables may be categorical (e.g. f776 and f777).
 
-Our strategy is first training a classification model using the whole data for classifying default or non-default, then training a regression model using $NonZeroLoss$ to predict the loss for clients with defaults. Our expectation is for a given test data: our program will first classify clients into two groups, group A for clients without defaults and group B for those with defaults; then set the predictions for loss of everyone in group A to 0; finally use the regression model to predict the loss of everyone in group B.
+\section{Data Analysis}
+The first and important step is analyzing the data we are provided. We get a dataset of 50,000 rows, and every row shows the unnamed 769 features and the default loss of one client. If there is no default then the loss would be 0, otherwise it would be a positive number. To have a quick overview of how often defaults happen, we computer the percentage of clients that have nonzero default and it is 10\%. This means only 10\% data is useful for predicting the loss, so we extract these data with default and name the data set \textbf{NonZeroLoss}.
+
+Our strategy is first training a classification model using the whole data for classifying default or non-default, then training a regression model using \textbf{NonZeroLoss} to predict the loss for clients with defaults. Our expectation is for a given test data: our program will first classify clients into two groups, group A for clients without defaults and group B for those with defaults; then set the predictions for loss of everyone in group A to 0; finally use the regression model to predict the loss of everyone in group B.
+
 \subsection{Missing data}
 Since every feature is unnamed, it is impossible for us to figure out which one is more important by subjective analysis. To do an objective analysis, we want to compute the correlation matrix. However, there is a great deal of missing data(NAN) in our dataset, we have to deal with them first. We compete the percentage of missing data for every feature and Table 2.1 is a table showing a part of them. We do this because we want to know how prevalent is the missing data and whether the missing data has a pattern or is just random.
 
@@ -169,9 +148,6 @@ Feature&Percentage(\%)\\
 \end{minipage}
 \end{table}
 
-\subsection{Correlation matrix (heatmap)}
-Having fixed the missing data, now we are able to compute the correlation matrix. To gain a quick overview of the relationships between features and loss, below is the correlation matrix in a heat-map.
-
 \subsection{Feature selection}
 First of all, we removed all duplicated features. To complete that, if two features have more than 30000 corresponding same values, we regarded this pair as duplicated, and only kept one of them.
 
@@ -179,24 +155,45 @@ Then, we searched for all pairs of highly correlated features and kept there dif
 
 Finally, we searched for all pairs of highly correlated features in the new feature set again, and removed all highly correlated features (correlation coefficient > 0.99). After this cleaning step, we obtained our final feature set for further analysis and training.
 
-In our first several tries, we chose a threshold 0.996 for generating new feature set, but after that only around 100 features were kept after all the selection processes, which was too less in our opinion (and got around 0.59 on Kaggle). 
+In our first several tries, we chose a threshold 0.996 for generating new feature set, but after that only around 100 features were kept after all the selection processes, which was too less in our opinion (and got around 0.59 on \textit{Kaggle}). 
 
 And thus we lowered the threshold to 0.993, and this time there were around 200 features in the last, and the predicting result was indeed improved by this (got around 0.57), which suggested that only 100 features could lead to kind of under-fitting.
-But there were no big progress when we used those 200 features to training no matter how we changed the training models or parameters. \\
+But there were no big progress when we used those 200 features to training no matter how we changed the training models or parameters.
 
 Therefore we concluded that 200 features were still not enough, a more powerful method to generating new features was necessary. 
-Inspired by the previous method which took difference of two highly correlated features as new feature, we used the four basic operators (+, -, \times, \div) between each two features to generate new features. 
-Then we further eliminated the feature combinations pairs that are not distinct based on our former rule (correlation coefficient > 0.99).\\
-Besides, we also considered features highly correlated with loss to be important. We imported \textit{f_regression} from package \textit{Sklearn} to find the correlation coefficient between the feature and the loss, and kept the top 100 features with the largest correlation as our top features. 
-Combined with those new features we generated mentioned above, there are around 450 features in total, which consisted our final feature set used to predict and generate submission file on Kaggle (got 0.50).
+Inspired by the previous method which took difference of two highly correlated features as new feature, we used the four basic operators ($+$, $-$, $\times$, $\div$) between each two features to generate new features. 
+Then we further eliminated the feature combinations pairs that are not distinct based on our former rule (correlation coefficient > 0.99).
 
+Besides, we also considered features highly correlated with loss to be important. We imported \textbf{f\_regression} from package \textit{sklearn} to find the correlation coefficient between the feature and the loss, and kept the top 100 features with the largest correlation as our top features. 
 
-\subsection{A Naive Training Model}
-We use the trained classification model to classify the test data into two groups, group A for clients without defaults and group B for those with defaults. We extract all data belong to group B and name this data set $TestWithLoss$. First we use the Regression Learner APP in MATLAB.
-We put the data set $NonZeroLoss$ into the regression model “fine free”. Fine tree is {wikipedia}. Below is the MATLAB window showing how it’s trained and its results.
+Combined with those new features we generated mentioned above, there are around 450 features in total, which consisted our final feature set used to predict and generate submission file on \textit{Kaggle} (got 0.50).
 
-Then we put the data set $TestWithLoss$ into the trained model and get its predictions. This is our first try and the score is 0.7??
-\section{Other Training Models}
+\subsection{Correlation matrix (heat-map)}
+Having fixed the missing data and finished selecting features, now we are able to compute the correlation matrix. To gain a quick overview of the relationships between features and loss, Figure 2.2, 2.3 and 2.4 are the correlation matrices in heat-maps.
+
+   \begin{figure}[thpb]
+      \centering
+      \includegraphics[width=10cm,height=7cm]{FFcorrelation_0_993}
+      \caption{The correlation matrix}
+      \label{figurelabel}
+   \end{figure}
+   
+\begin{table} 
+\begin{minipage}[b]{0.6\linewidth}
+\centering
+\includegraphics[height=60mm]{FFcorrelation_0_996.png}
+\captionof{figure}{The correlation matrix}
+\label{fig:image}
+\end{minipage}
+\begin{minipage}[b]{0.6\linewidth}
+\centering
+\includegraphics[height=60mm]{FFcorrelation_450_features.png}
+\captionof{figure}{The correlation matrix}
+\label{fig:image}
+\end{minipage}
+\end{table}
+
+\section{Training Models}
 \subsection{Classification}
 At first we tried to predict where a loan is default or not, which is a classification problem. Therefore the new target to predict is given by:
 $$ \textit{target}=\left\{
@@ -205,7 +202,7 @@ $$ \textit{target}=\left\{
 0     &      & \textit{loss} = 0
 \end{array} \right. $$
 For this task we used the complete feature set generated by our feature selection strategies. 
-The classification itself and validation was done by GradientBoostingClassifier in \textit{sklearn} package. 
+The classification itself and validation was done by $GradientBoostingClassifier$ in \textit{sklearn} package. 
 And the parameters were set as following: $\textit{n\_estimators}= 3000$, $\textit{max\_depth} = 9$.\\
 It is always not the best choice to choose the probability 0.5 as the cutoff of being predicted as the default loan.
 After trying with different numbers and referring to some previous work, we choose the probability 0.55 to be the cutoff. 
@@ -213,10 +210,26 @@ Namely, when the default probability is less than 0.55, the loan is regarded as 
 Otherwise, the loan is treated as the default loan, and would be processed by the regression phase.
 
 \subsection{Regression}
-After predicting whether the loans are default or not in testing data using Gradient Boosting Classifier mentioned above, we tried to predict the loss of all default loan by regression.
+\subsubsection{A Naive Training Model}
+We use the trained classification model to classify the test data into two groups, group A for clients without defaults and group B for those with defaults. We extract all data belong to group B and name this data set \textbf{TestWithLoss}. First we use the \textit{Regression Learner} APP in MATLAB. It can create and train three regression trees: a $Fine Tree$, a $Medium Tree$, and a $Coarse Tree$. The Fine Tree and the Medium Tree have similar RMSEs, while the Coarse Tree is less accurate. We put the data set \textbf{NonZeroLoss} into the regression model $Fine Tree$. Figure 3.1 is the MATLAB window showing how $FineTree$ in \textit{Regression Learner} works.
+
+   \begin{figure}[thpb]
+      \centering
+      \includegraphics[width=12cm,height=7cm]{finetree}
+      \caption{the MATLAB window showing how $FineTree$ in \textit{Regression Learner} works}
+      \label{figurelabel}
+   \end{figure}
+   
+Then we put the data set \textbf{TestWithLoss} into the trained model and get its predictions. This is our first try and the score is 0.76726.
+
+\subsubsection{Other Training Model}
+After predicting whether the loans are default or not in testing data using \textit{Gradient Boosting Classifier} mentioned above, we tried to predict the loss of all default loan by regression.
 Owing to the long tail distribution of the loss, it is a proper way to use $log(loss)$.
-The feature set for the loss prediction consisted of all features from our selection process. \\
+
+The feature set for the loss prediction consisted of all features from our selection process. 
+
 The loss prediction and validation was done by the weighted combination of Gradient Boosting regression (GBR) and Support Vector regression (SVR) from \textit{sklearn} package, with weight equals to 0.6 and 0.4, separately.
+
 The settings were as following: $\textit{n\_estimators} = 1300,\  \textit{max\_depth} = 4,\  \textit{subsample} = 0.5,\  \textit{learning\_rate} = 0.05$ for GBR regression;
 and $ \textit{C} = 16,\  \textit{kernel} = 'rbf',\  \textit{gamma} = 0.000122$ for SVR regression. 
 And we used $\textit{loss} = 0$ for all other cases.
