@@ -173,7 +173,7 @@ Having fixed the missing data and finished selecting features, now we are able t
 
    \begin{figure}[thpb]
       \centering
-      \includegraphics[width=10cm,height=7cm]{FFcorrelation_0_993}
+      \includegraphics[width=10cm,height=7cm]{corr}
       \caption{The correlation matrix}
       \label{figurelabel}
    \end{figure}
@@ -181,7 +181,7 @@ Having fixed the missing data and finished selecting features, now we are able t
 \begin{table} 
 \begin{minipage}[b]{0.6\linewidth}
 \centering
-\includegraphics[height=60mm]{FFcorrelation_0_996.png}
+\includegraphics[height=60mm]{FFcorr1.png}
 \captionof{figure}{The correlation matrix}
 \label{fig:image}
 \end{minipage}
