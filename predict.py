@@ -5,33 +5,12 @@ Created on Mon Mar 19 16:31:36 2018
 @author: Zongjian Fan
 """
 
-import re
-import math
-import collections
 import numpy as np
-import time
-import operator
-from scipy.io import mmread, mmwrite
-from random import randint
-from sklearn import cross_validation
-from sklearn import linear_model
-from sklearn.grid_search import GridSearchCV
 from sklearn import preprocessing as pp
 from sklearn.svm import SVR
+from sklearn.preprocessing import Imputer
 from sklearn.ensemble import GradientBoostingRegressor, GradientBoostingClassifier
-from sklearn.ensemble import  RandomForestRegressor, RandomForestClassifier
-from sklearn.ensemble import ExtraTreesRegressor
-from sklearn.decomposition import NMF
-from sklearn.pipeline import Pipeline
-from sklearn.svm import LinearSVC
-from sklearn.linear_model import LogisticRegression, Ridge, Lasso, ElasticNet
-import scipy.stats as stats
-from sklearn import tree
-from sklearn.feature_selection import f_regression
-from sklearn.metrics import precision_recall_curve
-from sklearn.metrics import auc, f1_score
-from sklearn.gaussian_process import GaussianProcess
-#import features
+
 
 # working directory
 dir = '.'
@@ -49,7 +28,7 @@ def output_classify(preds):
             preds[i] = 1
         else:
             preds[i] = 0
-        strs = str(i+105472) + ',' + str(np.float(preds[i]))
+        strs = str(i+1) + ',' + str(np.float(preds[i]))
         fs.write(strs + '\n');
     fs.close()
     return
@@ -72,13 +51,16 @@ def output_preds(preds):
 # load train data
 def load_train_fs():
     train_x = np.genfromtxt(open(dir + '/FinalFeature.csv','rb'), delimiter=',')
-    train_y = np.genfromtxt(open(dir + '/loss.csv','rb'), delimiter=',')
+    train_y = np.genfromtxt(open(dir + '/Loss.csv','rb'), delimiter=',')
     col_mean = np.nanmean(train_x, axis=0)
     indsx = np.where(np.isnan(train_x))
     print(indsx)
     train_x[indsx] = np.take(col_mean, indsx[1])
     train_x[np.isinf(train_x)] = 0
-    print('loading training data')
+    train_x[np.where(train_x >= np.finfo(np.float32).max)]=np.finfo(np.float32).max-5
+    train_x=Imputer().fit_transform(train_x)
+    train_x=np.divide(train_x, np.float32(450)+1)
+    print('loading training data...')
     print(train_x.shape, train_y.shape)
     return train_x, train_y
 
@@ -91,7 +73,10 @@ def load_test_fs():
     col_mean = np.nanmean(test_fs, axis=0)
     test_fs[inds] = np.take(col_mean, inds[1])
     test_fs[np.isinf(test_fs)] = 0
-    print('loading testing data')
+    test_fs[np.where(test_fs >= np.finfo(np.float32).max)]=np.finfo(np.float32).max-5
+    test_fs=Imputer().fit_transform(test_fs)
+    test_fs=np.divide(test_fs, np.float32(450)+1)
+    print('loading testing data...')
     print(test_fs.shape)
     return test_fs
 
@@ -112,23 +97,6 @@ def gbc_classify(train_x, train_y):
     return gbc
 
 def gbc_svr_predict( train_x, train_y, test_x):
-    #feature_indexs = getTopFeatures(train_x, train_y)
-#    flag = (test_x >= 1) 
-#    ind_tmp0 = np.where(flag)[0]
-#    
-#    ind_tmp = np.where(~flag)[0]
-#    train_x = np.log(1-train_x)
-#    test_x[ind_tmp] = np.log(1-test_x[ind_tmp])
-#    col_mean = np.nanmean(train_x, axis=0)
-#    inds = np.where(np.isnan(train_x))
-#    train_x[inds] = np.take(col_mean, inds[1])
-#    train_x[np.isinf(train_x)] = 0
-#    col_mean_test = np.nanmean(test_x, axis=0)
-#    inds_test = np.where(np.isnan(test_x))
-#    test_x[inds_test] = np.take(col_mean_test , inds_test[1])
-#    test_x[np.isinf(test_x)] = 0
-#    train_x.astype(np.float)
-#    test_x.astype(np.float)
     scaler = pp.StandardScaler()
     scaler.fit(train_x)
     train_x = scaler.transform(train_x)
@@ -140,7 +108,6 @@ def gbc_svr_predict( train_x, train_y, test_x):
     preds = svr.predict(test_x)
     preds_all = np.zeros([len(test_x)])
     preds_all = np.power(np.e, preds)
-#    preds_all[ind_tmp0] = 0
     return preds_all
 
 # use gbm regression to predict the loss, based on the result of gbm classifier
@@ -158,12 +125,14 @@ def gbc_gbr_predict(train_x, train_y, test_x):
     preds_all = np.power(np.e, preds)
     return preds_all
 
-# use gbm classifier to predict whether the loan defaults or not, then invoke svr and gbr regression
+# use gbm classifier to predict whether the loan defaults or not, then invoke the function gbc_gp_predict_part
 def predict(train_x, train_y, test_x):
     labels = toLabels(train_y)
     print('classifying')
 #    pred_probs=np.genfromtxt(open(dir + '/classify.csv','rb'), delimiter=',')
 #    print(pred_probs.shape)
+    labels=Imputer().fit_transform(labels.reshape(-1, 1))
+#    labels=labels.reshape(-1, 1)
     gbc = GradientBoostingClassifier(n_estimators=3000, max_depth=9)
     gbc.fit(train_x, labels)
     pred_probs = gbc.predict_proba(test_x)[:,1]
@@ -190,4 +159,4 @@ if __name__ == '__main__':
     test_x = load_test_fs()
     train_x, train_y = load_train_fs()
     preds= predict(train_x, train_y, test_x)
-    output_preds(preds)    
+    output_preds(preds)   
