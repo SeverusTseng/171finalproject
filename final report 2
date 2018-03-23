@@ -248,10 +248,15 @@ To generate the solution:\par
 2. Run \textbf{Predict.py} in the same directory.\par
 3. Copy the predicted loss data to the sample submission files.\par
 
-\section{Referrence}
-[1]. https://www.kaggle.com/c/loan-default-prediction/discussion/7398
-[2]. https://github.com/freedomljc/Loan_Default_Prediction
-[3]. https://www.kaggle.com/pmarcelino/comprehensive-data-exploration-with-python
+\begin{thebibliography}{99}
+\bibitem{kagglediscussion} \url{www.kaggle.com/c/loan-default-prediction/discussion/7398}.
+
+\bibitem{freedomljc}
+\url{https://github.com/freedomljc/Loan_Default_Prediction}
+
+\bibitem{pmarcelino}
+\url{www.kaggle.com/pmarcelino/comprehensive-data-exploration-with-python}
+\end{thebibliography} 
 
 %%% End document
 \nocite{*}
